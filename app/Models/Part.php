@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Part extends EloquentModel
 {
@@ -15,7 +16,7 @@ class Part extends EloquentModel
         'price',
     ];
 
-    public function model()
+    public function model(): BelongsTo
     {
         return $this->belongsTo(Model::class);
     }

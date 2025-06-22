@@ -2,35 +2,42 @@
 
 namespace App\Telegraph\Steps;
 
-use DefStudio\Telegraph\Contracts\StepHandler;
-use DefStudio\Telegraph\Models\TelegraphBot;
-use DefStudio\Telegraph\Models\TelegraphChat;
-use App\Models\WorkEntry;
-use App\Models\User;
+use App\Telegraph\Managers\StateManager;
+use App\Telegraph\Managers\StepManager;
+use App\Telegraph\State\StartState;
 use Carbon\Carbon;
+use App\Models\User;
+use App\Models\WorkEntry;
+use App\Telegraph\Contracts\StepInterface;
+use DefStudio\Telegraph\DTO\Message;
+use DefStudio\Telegraph\Models\TelegraphChat;
+use DefStudio\Telegraph\Models\TelegraphBot;
 
-class EnterQuantityStep implements StepHandler
+class EnterQuantityStep implements StepInterface
 {
-    public function __construct(private int $modelId, private int $partId)
+
+    public function ask(TelegraphChat $chat, bool $edit = false, int $messageId = null): void
     {
+        $chat->message('Enter quantity:')->send();
     }
 
-    public function handle(TelegraphBot $bot, TelegraphChat $chat, mixed $payload = null): StepHandler|null
+    public function handleMessage(TelegraphChat $chat, Message $message): void
     {
-        if ($payload !== null) {
-            $quantity = (int)$payload;
-            $user = User::firstWhere('telegram_id', $chat->chat_id);
-            WorkEntry::create([
-                'user_id' => $user?->id,
-                'part_id' => $this->partId,
-                'quantity' => $quantity,
-                'date' => Carbon::today(),
-            ]);
-            $chat->message('Entry saved!')->send();
-            return null;
-        }
 
-        $chat->message('Enter quantity:')->send();
-        return $this;
+        $quantity = (int)$message->text();
+        $user = User::factory()->create();
+        WorkEntry::create([
+            'user_id' => $user?->id,
+            'part_id' => $chat->storage()->get('part-id'),
+            'quantity' => $quantity,
+            'date' => Carbon::today(),
+        ]);
+        $chat->message('Entry saved!')->send();
+        StateManager::setState($chat, StartState::class);
+    }
+
+    public function handleCallback(TelegraphChat $chat, string $data, $callbackQuery): void
+    {
+        // TODO: Implement handleCallback() method.
     }
 }

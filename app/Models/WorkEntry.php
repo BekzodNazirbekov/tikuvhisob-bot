@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WorkEntry extends EloquentModel
 {
@@ -20,12 +21,12 @@ class WorkEntry extends EloquentModel
         'date' => 'date',
     ];
 
-    public function part()
+    public function part(): BelongsTo
     {
         return $this->belongsTo(Part::class);
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

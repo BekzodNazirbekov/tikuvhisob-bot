@@ -6,29 +6,29 @@ use Illuminate\Console\Command;
 use App\Models\User;
 use App\Models\WorkEntry;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\Console\Command\Command as CommandAlias;
 
 class SalaryReport extends Command
 {
     protected $signature = 'salaries:report {--month=}';
 
-    protected $description = 'Print user salaries for a month';
+    protected $description = 'Hisobchilar uchun oylik hisobot (tikuvchilar ish haqi)';
 
     public function handle(): int
     {
-        $month = $this->option('month') ?? now()->format('Y-m');
+        $month = $this->option('month') ?? now()->format('m');
 
-        $entries = WorkEntry::query()
-            ->select('user_id', DB::raw('sum(quantity * parts.price) as salary'))
-            ->join('parts', 'parts.id', '=', 'work_entries.part_id')
-            ->whereBetween('date', ["$month-01", "$month-31"])
-            ->groupBy('user_id')
-            ->get();
+        $users = User::where('role', 'worker')->get();
 
-        foreach ($entries as $entry) {
-            $user = User::find($entry->user_id);
-            $this->line($user->name . ': ' . $entry->salary);
+        foreach ($users as $user) {
+            $salary = WorkEntry::where('user_id', $user->id)
+                ->whereMonth('date', $month)
+                ->join('parts', 'work_entries.part_id', '=', 'parts.id')
+                ->sum(DB::raw('quantity * price'));
+
+            $this->line("👤 {$user->name}: 💰 {$salary} so'm");
         }
 
-        return self::SUCCESS;
+        return CommandAlias::SUCCESS;
     }
 }
