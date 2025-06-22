@@ -15,5 +15,6 @@ class StartCommand
     {
 
         StateManager::setState($chat, StartState::class);
+
     }
 }
