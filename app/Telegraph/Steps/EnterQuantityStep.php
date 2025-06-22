@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\WorkEntry;
 use App\Telegraph\Contracts\StepInterface;
 use DefStudio\Telegraph\DTO\Message;
+use DefStudio\Telegraph\Exceptions\StorageException;
 use DefStudio\Telegraph\Models\TelegraphChat;
 use DefStudio\Telegraph\Models\TelegraphBot;
 
@@ -21,19 +22,25 @@ class EnterQuantityStep implements StepInterface
         $chat->message('Enter quantity:')->send();
     }
 
+    /**
+     * @throws StorageException
+     */
     public function handleMessage(TelegraphChat $chat, Message $message): void
     {
 
         $quantity = (int)$message->text();
-        $user = User::factory()->create();
+
         WorkEntry::create([
-            'user_id' => $user?->id,
+            'user_id' => $chat->user?->id,
             'part_id' => $chat->storage()->get('part-id'),
             'quantity' => $quantity,
             'date' => Carbon::today(),
         ]);
+
         $chat->message('Entry saved!')->send();
+
         StateManager::setState($chat, StartState::class);
+
     }
 
     public function handleCallback(TelegraphChat $chat, string $data, $callbackQuery): void

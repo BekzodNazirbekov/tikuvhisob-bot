@@ -2,9 +2,12 @@
 
 namespace App\Telegraph\Steps;
 
-use App\Telegraph\Managers\StateManager;
-use App\Telegraph\State\AddUserState;
+
+use Illuminate\Support\Facades\DB;
 use DefStudio\Telegraph\DTO\Message;
+use App\Telegraph\State\AddUserState;
+use App\Telegraph\Managers\StepManager;
+use App\Telegraph\Managers\StateManager;
 use DefStudio\Telegraph\Keyboard\Button;
 use DefStudio\Telegraph\Keyboard\Keyboard;
 use App\Telegraph\Contracts\StepInterface;
@@ -60,6 +63,64 @@ class AskHomeStep implements StepInterface
         $messageId = $callbackQuery->message()->id() ?? null;
 
         switch ($decoded['action']) {
+            case 'plus':
+                {
+                    $chat->deleteMessage($messageId)->send();
+                    StepManager::next($chat);
+                }
+                break;
+            case 'balance':
+                {
+                    $chat->deleteMessage($messageId)->send();
+
+                    $userId = $chat->user->id;
+
+                    $start = now()->startOfMonth();
+                    $end = now()->endOfMonth();
+
+                    $entries = \App\Models\WorkEntry::query()
+                        ->select(
+                            'parts.model_id',
+                            'parts.id as part_id',
+                            'parts.price',
+                            DB::raw('SUM(quantity) as total_qty'),
+                            DB::raw('SUM(quantity * parts.price) as total_sum')
+                        )
+                        ->join('parts', 'parts.id', '=', 'work_entries.part_id')
+                        ->where('user_id', $userId)
+                        ->whereBetween('date', [$start, $end])
+                        ->groupBy('parts.model_id', 'parts.id', 'parts.price')
+                        ->orderBy('parts.model_id')
+                        ->get();
+
+                    if ($entries->isEmpty()) {
+                        $chat->message("🗓 Hozirgi oyda hech qanday ish yozuvi topilmadi.")->send();
+                        return;
+                    }
+
+                    $grouped = $entries->groupBy('model_id');
+                    $text = "🧾 <b>Hozirgi oy bo‘yicha hisobotingiz:</b>\n\n";
+
+                    foreach ($grouped as $modelId => $group) {
+                        $text .= "🧵 <b>Model ID: {$modelId}</b>\n";
+
+                        foreach ($group as $entry) {
+                            $sumFormatted = number_format($entry->total_sum, 0, '.', ' ');
+                            $priceFormatted = number_format($entry->price, 0, '.', ' ');
+                            $text .= "🔸 Part ID: {$entry->part_id} — {$entry->total_qty} dona × {$priceFormatted} = <b>{$sumFormatted} so'm</b>\n";
+                        }
+
+                        $text .= "\n";
+                    }
+
+                    // 🔙 Orqaga tugmasi
+                    $keyboard = Keyboard::make()->buttons([
+                        Button::make("⬅️ Orqaga")->action('back'),
+                    ]);
+
+                    $chat->html($text)->keyboard($keyboard)->send();
+                }
+                break;
             case 'adduser':
                 {
                     StateManager::setState($chat, AddUserState::class);
