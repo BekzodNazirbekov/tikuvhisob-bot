@@ -1,21 +1,18 @@
 <?php
 
-namespace App\Telegraph\Steps\AddModel;
+namespace App\Telegraph\Steps\AddPart;
 
-use App\Models\Model;
-use App\Telegraph\Managers\StateManager;
-use App\Telegraph\State\StartState;
-use DefStudio\Telegraph\DTO\Message;
 use App\Telegraph\Managers\StepManager;
 use App\Telegraph\Contracts\StepInterface;
+use DefStudio\Telegraph\DTO\Message;
 use DefStudio\Telegraph\Models\TelegraphChat;
 use DefStudio\Telegraph\Exceptions\StorageException;
 
-class AskModelNameStep implements StepInterface
+class AskPartNameStep implements StepInterface
 {
     public function ask(TelegraphChat $chat, bool $edit = false, int $messageId = null): void
     {
-        $chat->html("model nomini kiriting!")->send();
+        $chat->html("🔤 Yangi partiya nomini kiriting:")->send();
     }
 
     /**
@@ -23,20 +20,23 @@ class AskModelNameStep implements StepInterface
      */
     public function handleMessage(TelegraphChat $chat, Message $message): void
     {
-        $name = $message->text();
-        $chat->storage()->set('add_model_name', $name);
+        $name = trim($message->text());
 
-        Model::query()->create([
-            'name' => $name
-        ]);
+        if (mb_strlen($name) < 2) {
+            $chat->message("❌ Partiya nomi juda qisqa. Kamida 2 ta belgi bo‘lishi kerak.")->send();
+            return;
+        }
 
-        $chat->message("Model yaratildi model nomi {$name}")->send();
+        // Saqlash
+        $chat->storage()->set('add_part_name', $name);
 
-        StateManager::setState($chat, StartState::class);
+        // Keyingi stepgа o‘tish
+        StepManager::next($chat);
     }
 
     public function handleCallback(TelegraphChat $chat, string $data, $callbackQuery): void
     {
-        $chat->message(false)->send();
+        // Callbacklar bu stepda ishlatilmaydi
+        $chat->message("⛔ Iltimos, faqat matn yuboring.")->send();
     }
 }

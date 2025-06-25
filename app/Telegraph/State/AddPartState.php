@@ -2,19 +2,18 @@
 
 namespace App\Telegraph\State;
 
-use App\Telegraph\Steps\AddModel\AskModelNameStep;
+use App\Telegraph\Steps\AddPart\AskPartNameStep;
+use App\Telegraph\Steps\AddPart\AskPartPriceStep;
 use DefStudio\Telegraph\DTO\Message;
 use App\Telegraph\Managers\StepManager;
 use App\Telegraph\Contracts\StateInterface;
-use App\Telegraph\Steps\Register\AskPassStep;
 use DefStudio\Telegraph\Models\TelegraphChat;
-use App\Telegraph\Steps\Register\AskPhoneStep;
 
-class AddModelState implements StateInterface
+class AddPartState implements StateInterface
 {
     public static function name(): string
     {
-        return strtolower('AddModel');
+        return strtolower('AddPart');
     }
 
     public function enter(TelegraphChat $chat): void
@@ -35,7 +34,8 @@ class AddModelState implements StateInterface
     public function steps(): array
     {
         return [
-            AskModelNameStep::class
+            AskPartNameStep::class,
+            AskPartPriceStep::class
         ];
     }
 }

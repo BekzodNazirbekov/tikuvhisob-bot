@@ -1,18 +1,20 @@
 <?php
 
-namespace App\Telegraph\Steps\AddUser;
+namespace App\Telegraph\Steps\AddModel;
 
+use App\Models\Model;
+use App\Telegraph\State\StartState;
 use DefStudio\Telegraph\DTO\Message;
-use App\Telegraph\Managers\StepManager;
+use App\Telegraph\Managers\StateManager;
 use App\Telegraph\Contracts\StepInterface;
 use DefStudio\Telegraph\Models\TelegraphChat;
 use DefStudio\Telegraph\Exceptions\StorageException;
 
-class AskNameStep implements StepInterface
+class AskModelNameStep implements StepInterface
 {
     public function ask(TelegraphChat $chat, bool $edit = false, int $messageId = null): void
     {
-        $chat->html("Ishnining ismini kiriting!")->send();
+        $chat->html("🧵 Iltimos, yangi model nomini kiriting:")->send();
     }
 
     /**
@@ -20,13 +22,32 @@ class AskNameStep implements StepInterface
      */
     public function handleMessage(TelegraphChat $chat, Message $message): void
     {
-        $name = $message->text();
-        $chat->storage()->set('adduser_name', $name);
-        StepManager::next($chat);
+        $name = trim($message->text());
+
+        if (mb_strlen($name) < 2) {
+            $chat->message("❗ Model nomi kamida 2 ta belgidan iborat bo‘lishi kerak.")->send();
+            return;
+        }
+
+        // Avval saqlangan bo‘lsa, yaratmaslik
+        $exists = Model::where('name', $name)->exists();
+        if ($exists) {
+            $chat->message("⚠️ Bunday nomli model allaqachon mavjud. Iltimos, boshqa nom kiriting.")->send();
+            return;
+        }
+
+        // Modelni yaratish
+        $model = Model::create(['name' => $name]);
+
+        // Javob yuborish
+        $chat->message("✅ Model yaratildi!\n📦 Nomi: <b>{$model->name}</b>")->send();
+
+        // Boshlang‘ich statega qaytish
+        StateManager::setState($chat, StartState::class);
     }
 
     public function handleCallback(TelegraphChat $chat, string $data, $callbackQuery): void
     {
-
+        $chat->message("⛔ Faqat matn yuboring.")->send();
     }
 }
