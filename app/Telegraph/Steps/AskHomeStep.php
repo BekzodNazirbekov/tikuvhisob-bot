@@ -107,7 +107,7 @@ class AskHomeStep implements StepInterface
         $chat->storage()->set('add-part-model-id', $modelId);
 
         $keyboard = Keyboard::make()->buttons([
-            Button::make("➕ Partiya qo‘shish")->action("add_part"),
+            Button::make("➕ Qisim qo‘shish")->action("add_part"),
             Button::make("⬅️ Orqaga")->action('model'),
         ]);
 

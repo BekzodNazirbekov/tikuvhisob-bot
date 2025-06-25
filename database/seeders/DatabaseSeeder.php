@@ -22,18 +22,18 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin',
         ]);
 
-        $workers = User::factory(3)->create();
+        // $workers = User::factory(3)->create();
 
-        $models = Model::factory(2)
-            ->has(
-                Part::factory()->count(2)
-            )
-            ->create();
+        // $models = Model::factory(2)
+        //     ->has(
+        //         Part::factory()->count(2)
+        //     )
+        //     ->create();
 
-        foreach ($workers as $worker) {
-            WorkEntry::factory(5)->create([
-                'user_id' => $worker->id,
-            ]);
-        }
+        // foreach ($workers as $worker) {
+        //     WorkEntry::factory(5)->create([
+        //         'user_id' => $worker->id,
+        //     ]);
+        // }
     }
 }

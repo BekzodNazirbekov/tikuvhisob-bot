@@ -14,7 +14,7 @@ class AskPartPriceStep implements StepInterface
 {
     public function ask(TelegraphChat $chat, bool $edit = false, int $messageId = null): void
     {
-        $chat->html("💰 Partiya narxini kiriting:")->send();
+        $chat->html("💰 qisim narxini kiriting:")->send();
     }
 
     /**

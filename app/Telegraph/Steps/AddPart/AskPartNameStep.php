@@ -12,7 +12,7 @@ class AskPartNameStep implements StepInterface
 {
     public function ask(TelegraphChat $chat, bool $edit = false, int $messageId = null): void
     {
-        $chat->html("🔤 Yangi partiya nomini kiriting:")->send();
+        $chat->html("🔤 Yangi qisim nomini kiriting:")->send();
     }
 
     /**
