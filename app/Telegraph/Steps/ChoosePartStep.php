@@ -34,6 +34,14 @@ class ChoosePartStep implements StepInterface
             return;
         }
 
+        $totalCount = $parts->sum('count');
+
+        if ($totalCount == 0) {
+            $chat->message("Bu qism uchun belgilangan limitdan o'tildi.")->send();
+            StepManager::goToStep($chat, ChooseModelStep::class);
+            return;
+        }
+
         $keyboard = Keyboard::make();
         foreach ($parts as $part) {
             if($part->getCount() == 0){
