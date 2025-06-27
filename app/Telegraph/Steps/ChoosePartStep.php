@@ -36,6 +36,10 @@ class ChoosePartStep implements StepInterface
 
         $keyboard = Keyboard::make();
         foreach ($parts as $part) {
+            if($part->getCount() == 0){
+                continue;
+            }
+
             $keyboard->buttons([
                 Button::make("🔹 " . $part->name)->action("part-{$part->id}")
             ]);

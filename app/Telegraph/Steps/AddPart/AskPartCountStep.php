@@ -3,7 +3,6 @@
 namespace App\Telegraph\Steps\AddPart;
 
 use App\Models\Part;
-use App\Telegraph\Managers\StepManager;
 use App\Telegraph\State\StartState;
 use DefStudio\Telegraph\DTO\Message;
 use App\Telegraph\Managers\StateManager;
@@ -11,11 +10,11 @@ use App\Telegraph\Contracts\StepInterface;
 use DefStudio\Telegraph\Models\TelegraphChat;
 use DefStudio\Telegraph\Exceptions\StorageException;
 
-class AskPartPriceStep implements StepInterface
+class AskPartCountStep implements StepInterface
 {
     public function ask(TelegraphChat $chat, bool $edit = false, int $messageId = null): void
     {
-        $chat->html("💰 qisim narxini kiriting:")->send();
+        $chat->html("🔢 Qisim soni kiriting?")->send();
     }
 
     /**
@@ -23,15 +22,16 @@ class AskPartPriceStep implements StepInterface
      */
     public function handleMessage(TelegraphChat $chat, Message $message): void
     {
-        $price = (int)trim($message->text());
+        $count = (int)trim($message->text());
 
-        if ($price <= 0) {
-            $chat->message("❌ Narx noto‘g‘ri. Iltimos, musbat son kiriting.")->send();
+        if ($count <= 0) {
+            $chat->message("❌ Son noto‘g‘ri. Iltimos, musbat son kiriting.")->send();
             return;
         }
 
         $name = $chat->storage()->get('add_part_name');
         $model_id = $chat->storage()->get('add-part-model-id');
+        $price = $chat->storage()->get('add-part-price');
 
         if (!$name || !$model_id) {
             $chat->message("❗ Kerakli ma’lumotlar topilmadi. Iltimos, qaytadan urinib ko‘ring.")->send();
@@ -39,11 +39,26 @@ class AskPartPriceStep implements StepInterface
             return;
         }
 
+        $part = Part::create([
+            'name' => $name,
+            'price' => $price,
+            'model_id' => $model_id,
+            'status' => 'active', // Default status
+            'count' => $count, // Set the count
+        ]);
 
-        // Saqlash
-        $chat->storage()->set('add-part-price', $price);
-        // Keyingi stepgа o‘tish
-        StepManager::next($chat);
+        $formattedPrice = number_format($price, 0, '.', ' ');
+
+        $text = "✅ Yangi partiya muvaffaqiyatli yaratildi:\n\n";
+        $text .= "📦 Nomi: <b>{$part->name}</b>\n";
+        $text .= "💰 Narxi: <b>{$formattedPrice} so‘m</b>\n";
+        $text .= "🧵 Model ID: <b>{$part->model_id}</b>\n";
+        $text .= "🔢 Qisim soni: <b>{$part->count}</b>";
+
+        $chat->html($text)->send();
+
+        // Toza qaytish
+        StateManager::setState($chat, StartState::class);
     }
 
     public function handleCallback(TelegraphChat $chat, string $data, $callbackQuery): void

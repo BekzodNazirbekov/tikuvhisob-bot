@@ -4,10 +4,12 @@ namespace App\Telegraph\State;
 
 use App\Telegraph\Steps\AddPart\AskPartNameStep;
 use App\Telegraph\Steps\AddPart\AskPartPriceStep;
+use App\Telegraph\Steps\AddPart\AskPartCountStep;
 use DefStudio\Telegraph\DTO\Message;
 use App\Telegraph\Managers\StepManager;
 use App\Telegraph\Contracts\StateInterface;
 use DefStudio\Telegraph\Models\TelegraphChat;
+use Illuminate\Console\View\Components\Ask;
 
 class AddPartState implements StateInterface
 {
@@ -35,7 +37,8 @@ class AddPartState implements StateInterface
     {
         return [
             AskPartNameStep::class,
-            AskPartPriceStep::class
+            AskPartPriceStep::class,
+            AskPartCountStep::class
         ];
     }
 }

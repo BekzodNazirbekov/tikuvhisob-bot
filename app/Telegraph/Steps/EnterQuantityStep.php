@@ -12,6 +12,8 @@ use DefStudio\Telegraph\DTO\Message;
 use DefStudio\Telegraph\Models\TelegraphChat;
 use DefStudio\Telegraph\Exceptions\StorageException;
 
+use function Laravel\Prompts\text;
+
 class EnterQuantityStep implements StepInterface
 {
     public function ask(TelegraphChat $chat, bool $edit = false, int $messageId = null): void
@@ -42,11 +44,21 @@ class EnterQuantityStep implements StepInterface
         }
 
         $part = Part::find($partId);
+
         if (!$part) {
             $chat->message("❌ Part topilmadi.")->send();
             StateManager::setState($chat, StartState::class);
             return;
         }
+
+        $bool = $part->getCount() >= $quantity;
+
+        if(!$bool){
+            $chat->message("❗️Kiritilgan miqdor ruxsat etilgan chegaradan oshib ketdi.\n\nIltimos, maksimal {$part->getCount()} dona miqdorgacha kiriting.")->send();
+            return;
+        }
+
+        $part->setCount($part->getCount() - $quantity);
 
         WorkEntry::create([
             'user_id' => $userId,
