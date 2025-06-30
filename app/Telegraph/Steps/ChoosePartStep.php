@@ -26,7 +26,9 @@ class ChoosePartStep implements StepInterface
             return;
         }
 
-        $parts = Part::where('model_id', $modelId)->get();
+        $parts = Part::where('model_id', $modelId)
+             ->where('status', 'active')
+             ->get();
 
         if ($parts->isEmpty()) {
             $chat->message("📭 Ushbu modelga hech qanday part biriktirilmagan.")->send();
