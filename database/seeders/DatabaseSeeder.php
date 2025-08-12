@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Bot;
 use App\Models\User;
 use App\Models\Model;
 use App\Models\Part;
@@ -22,18 +23,18 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin',
         ]);
 
-        // $workers = User::factory(3)->create();
+        Bot::query()->create([
+            'name' => 'Bot',
+            'token' => "8026006539:AAEzPd1qKWBW8nUEdBjVf49yPEujDa-eHyg"
+        ]);
 
-        // $models = Model::factory(2)
-        //     ->has(
-        //         Part::factory()->count(2)
-        //     )
-        //     ->create();
+        $models = Model::factory()->count(10)->create();
 
-        // foreach ($workers as $worker) {
-        //     WorkEntry::factory(5)->create([
-        //         'user_id' => $worker->id,
-        //     ]);
-        // }
+        $models->each(function ($model) {
+            Part::factory()->count(10)->create([
+                'model_id' => $model->id
+            ]);
+        });
+
     }
 }

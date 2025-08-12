@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Model;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -14,9 +15,10 @@ class PartFactory extends Factory
     public function definition(): array
     {
         return [
-            'model_id' => \App\Models\Model::factory(),
+            'model_id' => Model::factory(),
             'name' => fake()->word(),
             'price' => fake()->randomFloat(2, 1, 10),
+            'count' =>  fake()->numberBetween(10, 50),
         ];
     }
 }
